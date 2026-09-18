@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>防詐實境模擬診所：一頁式詐騙解密遊戲</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    
+    /* 熱點隱形， hover 時顯示輕微提示 */
+    .invisible-hotspot {
+      position: absolute;
+      background-color: transparent;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      z-index: 30;
+    }
+    .invisible-hotspot:hover {
+      background-color: rgba(239, 68, 68, 0.15);
+    }
+    .invisible-hotspot.found {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    /* 右側選對時的煙火璀璨閃爍邊框動畫 */
+    @keyframes fireworks-border {
+      0% {
+        border-color: #f59e0b;
+        box-shadow: 0 0 15px #f59e0b, inset 0 0 10px rgba(245, 158, 11, 0.5);
+      }
+      25% {
+        border-color: #ec4899;
+        box-shadow: 0 0 25px #ec4899, inset 0 0 15px rgba(236, 72, 153, 0.6);
+      }
+      50% {
+        border-color: #10b981;
+        box-shadow: 0 0 30px #10b981, inset 0 0 20px rgba(16, 185, 129, 0.7);
+      }
+      75% {
+        border-color: #3b82f6;
+        box-shadow: 0 0 25px #3b82f6, inset 0 0 15px rgba(59, 130, 246, 0.6);
+      }
+      100% {
+        border-color: #10b981;
+        box-shadow: 0 0 15px #10b981, inset 0 0 8px rgba(16, 185, 129, 0.4);
+      }
+    }
+
+    .fireworks-card {
+      animation: fireworks-border 1.5s ease-in-out infinite alternate;
+    }
+
+    /* 隱藏滾動條 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-900">
+
+  <!-- 頂部導航欄 -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded text-xs flex items-center gap-1">
+          <span>🛡️</span> 警民聯防
+        </div>
+        <h1 class="text-base md:text-lg font-bold text-white tracking-wide">
+          一頁式網購詐騙 <span class="text-amber-400">「盲測眼力大挑戰」</span>
+        </h1>
+      </div>
+      
+      <!-- 計分板 -->
+      <div class="flex items-center gap-3 bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-slate-700">
+        <span class="text-xs text-slate-400 hidden sm:inline">已找出破綻：</span>
+        <div class="text-amber-400 font-extrabold text-base flex items-center gap-1">
+          <span id="score">0</span> <span class="text-xs text-slate-500">/ 5</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主遊戲區域 -->
+  <main class="max-w-6xl mx-auto p-4 md:p-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- 左側：擬真手機介面 (純圖片模擬，無黃框) -->
+    <div class="lg:col-span-6 flex justify-center">
+      <div class="w-[360px] md:w-[380px] bg-slate-950 border-[10px] border-slate-800 rounded-[40px] shadow-2xl overflow-hidden relative border-t-[20px] ring-1 ring-slate-700/50">
+        
+        <!-- 模擬手機頂部狀態欄 -->
+        <div class="bg-slate-900 px-3 py-1.5 border-b border-slate-800 relative z-20 flex items-center justify-between text-[10px] text-slate-400">
+          <span>中華電信 5G</span>
+          <span>12:00</span>
+          <span>100% 🔋</span>
+        </div>
+
+        <!-- 詐騙網站圖片範本模擬器 -->
+        <div class="h-[580px] overflow-y-auto bg-slate-100 text-slate-900 text-xs relative select-none no-scrollbar">
+          
+          <!-- 1. 假網址欄 (熱點 1) -->
+          <div class="bg-slate-800 px-2.5 py-1.5 text-xs text-amber-300 flex items-center justify-between font-mono relative border-b border-slate-700">
+            <span class="truncate">🔒 http://Jinrongfsp.com</span>
+            <span class="text-[9px] text-slate-400 bg-slate-900 px-1 rounded">不安全</span>
+            <!-- 隱形熱點 1 -->
+            <div id="hotspot-1" onclick="findClue(1, event)" class="invisible-hotspot inset-0" title="點擊網址區域"></div>
+          </div>
+
+          <!-- 2. 限時倒數計時區 (熱點 2) -->
+          <div class="bg-gradient-to-r from-red-600 to-rose-700 text-white px-3 py-2 font-bold flex justify-between items-center text-xs relative shadow-md">
+            <div>🔥 限時下殺 2 折！剩餘 07時58分</div>
+            <div class="bg-red-900/60 px-1.5 py-0.5 rounded text-[10px] text-red-100">4839件已售</div>
+            <!-- 隱形熱點 2 -->
+            <div id="hotspot-2" onclick="findClue(2, event)" class="invisible-hotspot inset-0" title="點擊倒數計時區域"></div>
+          </div>
+
+          <!-- 3. 商品名與山寨標題 (熱點 3) -->
+          <div class="p-3 bg-white border-b border-slate-200 relative">
+            <div class="text-red-600 font-extrabold text-sm mb-1">【新竹快閃店因百貨調整因素~ 即將撤櫃 最後七天】</div>
+            <div class="bg-amber-50 border border-amber-200 p-2 rounded text-slate-800 my-1">
+              <span class="font-bold text-red-600">DURDERRY</span> 萬元英國經典格紋披肩圍巾 <span class="text-red-600 font-extrabold">437 破盤價搶購</span>
+              <div class="text-[10px] text-slate-500 mt-1">官網原價18200元！現破價 1條 $950，買4條搶殺價 $1750！</div>
+            </div>
+            <!-- 隱形熱點 3 -->
+            <div id="hotspot-3" onclick="findClue(3, event)" class="invisible-hotspot inset-0" title="點擊商品與價格區域"></div>
+          </div>
+
+          <!-- 商品圖片展示區 -->
+          <div class="p-2 bg-slate-50">
+            <div class="w-full h-44 bg-slate-200 rounded flex flex-col items-center justify-center text-slate-500 gap-1 border border-slate-300">
+              <span class="text-4xl">🧣📱</span>
+              <span class="text-xs font-bold">【OPPO R11s / DURDERRY 圍巾】</span>
+              <div class="flex gap-1 mt-1">
+                <span class="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[10px]">正品保障</span>
+                <span class="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded text-[10px]">貨到付款</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. 付款與客服說明 (熱點 4) -->
+          <div class="p-3 bg-slate-50 border-t border-slate-200 relative">
+            <div class="font-bold mb-1 text-slate-800">服務保障說明：</div>
+            <div class="text-slate-600 text-[11px] space-y-1">
+              <div>✅ 全台免運費，支持 <strong class="text-red-600">超商貨到付款</strong></div>
+              <div>✅ 7天鑑賞期 / 15天不滿意包郵退換</div>
+              <div>✅ 客服聯繫：僅提供 <span class="text-blue-600 underline">Line 私訊客服</span></div>
+            </div>
+            <!-- 隱形熱點 4 -->
+            <div id="hotspot-4" onclick="findClue(4, event)" class="invisible-hotspot inset-0" title="點擊服務保障區域"></div>
+          </div>
+
+          <!-- 5. 買家好評 (熱點 5) -->
+          <div class="p-3 bg-white border-t border-slate-200 mb-14 relative">
+            <div class="font-bold text-slate-800 mb-1">最新買家評價 (999+)</div>
+            <div class="space-y-1.5 text-[11px] text-slate-600">
+              <div class="border-b pb-1">
+                <span class="font-bold text-slate-800">陳*姐：</span>真的收到貨了！品質太棒了，簡直不敢相信才幾百塊！
+              </div>
+              <div class="border-b pb-1">
+                <span class="font-bold text-slate-800">林*明：</span>昨天訂今天到，太快了！物超所值！
+              </div>
+            </div>
+            <!-- 隱形熱點 5 -->
+            <div id="hotspot-5" onclick="findClue(5, event)" class="invisible-hotspot inset-0" title="點擊買家評價區域"></div>
+          </div>
+
+          <!-- 底部固定購買按鈕 -->
+          <div class="absolute bottom-0 inset-x-0 bg-white p-2 border-t border-slate-200 flex justify-between items-center shadow-lg">
+            <div class="text-red-600 font-extrabold text-sm">NT$ 3350 <span class="text-slate-400 line-through text-[10px]">NT$ 8999</span></div>
+            <button class="bg-red-600 text-white font-bold px-4 py-1.5 rounded-full text-xs shadow">立即購買</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 右側：破綻顯示面板 (選對時發出閃爍煙火邊框) -->
+    <div class="lg:col-span-6 flex flex-col gap-4">
+      
+      <!-- 提示卡片 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+        <h2 class="text-base font-bold text-amber-400 flex items-center gap-2 mb-1">
+          <span>🕵️‍♂️</span> 實境破綻盲測
+        </h2>
+        <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+          畫面上**沒有任何黃框提示**！請憑你的直覺與防詐經驗，直接點擊左側網頁中「懷疑是詐騙陷阱」的位置。答對時，右側相對應的卡片會爆發璀璨煙火並閃爍繽紛邊框！
+        </p>
+      </div>
+
+      <!-- 破綻列表卡片 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg flex-1">
+        <h3 class="text-sm font-bold text-slate-300 mb-3 border-b border-slate-800 pb-2 flex justify-between items-center">
+          <span>破綻解密紀錄</span>
+          <span class="text-xs font-normal text-slate-500">直接點擊左側圖片解鎖</span>
+        </h3>
+
+        <div class="space-y-3">
+          
+          <!-- 破綻 1 -->
+          <div id="card-1" class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-500 transition-all duration-300">
+            <div class="font-bold text-sm flex items-center gap-2">
+              <span class="w-6 h-6 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center text-xs">1</span>
+              <span>破綻一：？？？？？？</span>
+            </div>
+          </div>
+
+          <!-- 破綻 2 -->
+          <div id="card-2" class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-500 transition-all duration-300">
+            <div class="font-bold text-sm flex items-center gap-2">
+              <span class="w-6 h-6 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center text-xs">2</span>
+              <span>破綻二：？？？？？？</span>
+            </div>
+          </div>
+
+          <!-- 破綻 3 -->
+          <div id="card-3" class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-500 transition-all duration-300">
+            <div class="font-bold text-sm flex items-center gap-2">
+              <span class="w-6 h-6 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center text-xs">3</span>
+              <span>破綻三：？？？？？？</span>
+            </div>
+          </div>
+
+          <!-- 破綻 4 -->
+          <div id="card-4" class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-500 transition-all duration-300">
+            <div class="font-bold text-sm flex items-center gap-2">
+              <span class="w-6 h-6 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center text-xs">4</span>
+              <span>破綻四：？？？？？？</span>
+            </div>
+          </div>
+
+          <!-- 破綻 5 -->
+          <div id="card-5" class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-500 transition-all duration-300">
+            <div class="font-bold text-sm flex items-center gap-2">
+              <span class="w-6 h-6 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center text-xs">5</span>
+              <span>破綻五：？？？？？？</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 全數通關卡片 -->
+      <div id="victory-card" class="hidden bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-500 rounded-2xl p-4 text-emerald-100 text-center shadow-2xl animate-bounce">
+        <div class="text-2xl font-bold mb-1">🎆 完美通關！神級防詐達人！</div>
+        <div class="text-xs text-emerald-300">防詐五大絕招：網址亂、價格慘、無電話、限貨到、逼限時！</div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- 腳本邏輯與煙火特效 -->
+  <script>
+    const cluesData = {
+      1: {
+        title: "亂數拼音假網址 (Jinrongfsp.com)",
+        desc: "網址為亂數拼音，與宣稱的名牌官方網站完全無關，且未經過安全機構認證。"
+      },
+      2: {
+        title: "倒數計時逼迫衝動下單",
+        desc: "製造「限時2折」、「撤櫃最後7天」的急迫感，誘使消費者在焦慮中忘記查證。"
+      },
+      3: {
+        title: "離譜低價與山寨品牌 (DURDERRY)",
+        desc: "萬餘元商品折到幾百元，且故意偷換品牌字母（如 BURBERRY 變成 DURDERRY）。"
+      },
+      4: {
+        title: "僅限貨到付款，完全無電話地址",
+        desc: "不敢提供公司地址與電話，利用「貨到付款」讓人鬆懈，實則寄送垃圾廢紙盲盒。"
+      },
+      5: {
+        title: "罐頭式假買家好評",
+        desc: "評價區全是一面倒的罐頭五星好評，語氣生硬且無法點擊查看買家個人主頁。"
+      }
+    };
+
+    let foundSet = new Set();
+
+    function triggerFireworks(x, y) {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 40,
+          spread: 60,
+          origin: { x: x / window.innerWidth, y: y / window.innerHeight },
+          colors: ['#f59e0b', '#10b981', '#ec4899', '#3b82f6', '#ffffff']
+        });
+      }
+    }
+
+    function findClue(id, event) {
+      if (foundSet.has(id)) return;
+
+      foundSet.add(id);
+      const clue = cluesData[id];
+
+      // 觸發滑鼠點擊位置的小煙火
+      if (event) {
+        triggerFireworks(event.clientX, event.clientY);
+      }
+
+      // 標記熱點已找到
+      const hotspot = document.getElementById(`hotspot-${id}`);
+      if (hotspot) hotspot.classList.add("found");
+
+      // 右側對應卡片套用煙火閃爍特效與綠色燈號
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.className = "p-3 bg-slate-900 border-2 rounded-xl text-slate-100 transition-all duration-300 fireworks-card shadow-xl";
+        card.innerHTML = `
+          <div class="font-bold text-sm text-emerald-400 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <span class="w-6 h-6 bg-emerald-500 text-slate-950 font-black rounded-full flex items-center justify-center text-xs">✓</span>
+              ${clue.title}
+            </span>
+            <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full animate-pulse">🎉 抓包成功</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-1.5 leading-relaxed pl-8">${clue.desc}</p>
+        `;
+      }
+
+      // 更新計分
+      document.getElementById("score").innerText = foundSet.size;
+
+      // 全部找出時的大煙火通關
+      if (foundSet.size === 5) {
+        setTimeout(() => {
+          document.getElementById("victory-card").classList.remove("hidden");
+          if (typeof confetti === 'function') {
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+          }
+        }, 500);
+      }
+    }
+  </script>
+</body>
+</html>

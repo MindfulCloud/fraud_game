@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>防詐審查官：Threads 貼文判決戰</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      user-select: none;
+    }
+
+    /* 卡牌翻頁與滑動效果 */
+    .card-swipe-left {
+      transform: translateX(-150%) rotate(-20deg) !important;
+      opacity: 0;
+      transition: all 0.4s ease-out;
+    }
+    .card-swipe-right {
+      transform: translateX(150%) rotate(20deg) !important;
+      opacity: 0;
+      transition: all 0.4s ease-out;
+    }
+    .card-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-10px) rotate(-3deg); }
+      40% { transform: translateX(10px) rotate(3deg); }
+      60% { transform: translateX(-10px) rotate(-3deg); }
+      80% { transform: translateX(10px) rotate(3deg); }
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-900">
+
+  <!-- 頂部資訊欄 -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">⚖️</span>
+        <h1 class="text-base font-bold text-white">防詐審查官 <span class="text-amber-400">「貼文判決戰」</span></h1>
+      </div>
+      
+      <!-- 生命值與分數 -->
+      <div class="flex items-center gap-4">
+        <div class="text-xs font-bold text-slate-300 flex items-center gap-1">
+          <span>❤️ 生命:</span> <span id="hp-display" class="text-rose-500 text-sm">❤️❤️❤️</span>
+        </div>
+        <div class="text-xs font-bold text-slate-300">
+          <span>得分:</span> <span id="score-display" class="text-amber-400 text-sm">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主遊戲卡牌區 -->
+  <main class="max-w-md mx-auto p-4 flex-1 w-full flex flex-col justify-between items-center relative">
+    
+    <!-- 說明標題 -->
+    <div class="text-center my-2">
+      <p class="text-xs text-slate-400">審查 Threads 徵才貼文：<span class="text-rose-400 font-bold">⬅️ 往左劃/點紅鍵（詐騙）</span> ｜ <span class="text-emerald-400 font-bold">往右劃/點綠鍵（正常）➡️</span></p>
+    </div>
+
+    <!-- 卡牌容器區 -->
+    <div class="w-full h-[460px] relative flex justify-center items-center">
+      
+      <!-- 動態貼文卡牌 -->
+      <div id="post-card" class="w-full bg-black border border-slate-800 rounded-3xl p-5 shadow-2xl absolute inset-0 flex flex-col justify-between transition-transform duration-200 cursor-grab active:cursor-grabbing">
+        
+        <!-- 卡牌頂部發文者 -->
+        <div>
+          <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-3">
+            <div class="flex items-center gap-2.5">
+              <div id="avatar" class="w-9 h-9 bg-gradient-to-tr from-amber-500 to-rose-500 rounded-full flex items-center justify-center font-bold text-black text-xs">HR</div>
+              <div>
+                <div id="author-name" class="text-xs font-bold text-white flex items-center gap-1">人資雅雅</div>
+                <div id="author-time" class="text-[10px] text-zinc-500">2小時前</div>
+              </div>
+            </div>
+            <span class="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">審查中</span>
+          </div>
+
+          <!-- 卡牌內文 -->
+          <div id="post-content" class="text-xs leading-relaxed text-zinc-200 space-y-2 h-[260px] overflow-y-auto no-scrollbar">
+            <!-- 內文動態載入 -->
+          </div>
+        </div>
+
+        <!-- 卡牌底部數據 -->
+        <div class="border-t border-zinc-800 pt-2 flex justify-between items-center text-[11px] text-zinc-500">
+          <span>❤️ 1.2k 個讚</span>
+          <span>💬 45 則留言</span>
+          <span>🔄 128 次轉發</span>
+        </div>
+
+      </div>
+
+      <!-- 遊戲結束/結算面板 (預設隱藏) -->
+      <div id="game-over-panel" class="hidden w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center z-40">
+        <div id="game-over-icon" class="text-4xl mb-2">🏆</div>
+        <h2 id="game-over-title" class="text-xl font-bold mb-2 text-white">審查任務完成！</h2>
+        <p id="game-over-desc" class="text-xs text-slate-300 leading-relaxed mb-4"></p>
+        
+        <div class="bg-slate-950 p-3 rounded-xl text-left text-xs space-y-1 text-slate-300 mb-4 border border-slate-800">
+          <div class="font-bold text-amber-400 mb-1">🛡️ 審查官防詐速記手冊：</div>
+          <div>1. 標榜「高薪輕鬆賺、借帳戶薪轉」必為詐騙。</div>
+          <div>2. 正規公司徵才皆有完整名稱、電話與官方求職管道。</div>
+          <div>3. 絕不交付網路銀行帳密與金融卡！</div>
+        </div>
+
+        <button onclick="restartGame()" class="bg-amber-500 text-slate-950 font-bold px-6 py-2 rounded-full text-xs hover:bg-amber-400 shadow-lg">再挑戰一次 🔄</button>
+      </div>
+
+    </div>
+
+    <!-- 判決按鈕區 -->
+    <div id="control-buttons" class="w-full grid grid-cols-2 gap-4 mt-4">
+      <button onclick="judge(false)" class="bg-rose-950/80 hover:bg-rose-900 border border-rose-600 text-rose-200 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm shadow-lg transition-all active:scale-95">
+        <span>❌ 檢舉詐騙</span>
+      </button>
+      <button onclick="judge(true)" class="bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600 text-emerald-200 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm shadow-lg transition-all active:scale-95">
+        <span>✅ 核准通過</span>
+      </button>
+    </div>
+
+  </main>
+
+  <script>
+    // 貼文題庫 (包含真實與詐騙貼文)
+    const cardsData = [
+      {
+        id: 1,
+        isLegit: false,
+        author: "hr_yaya_job",
+        avatarText: "雅",
+        time: "1小時前",
+        content: `
+          <p class="font-bold text-white mb-1">#聽說脆比104好用😂</p>
+          <p>最近公司擴大徵才！尋找兼職/正職夥伴～</p>
+          <p class="text-amber-300 font-semibold mt-1">✨ 肯學習 1-2 萬很輕鬆，認真學習 6-10 萬！高薪不限學歷、在家輕鬆賺錢！</p>
+          <p class="mt-2 text-zinc-400">有興趣請加 LINE ID: 「人資被雅」私訊了解！只需提供銀行帳戶協助處理薪轉即可分紅！</p>
+        `,
+        explanation: "詐騙！標榜不限學歷高薪輕鬆賺，且要求提供銀行帳戶進行薪轉分紅，實為人頭戶洗錢陷阱！"
+      },
+      {
+        id: 2,
+        isLegit: true,
+        author: "tech_corp_hr",
+        avatarText: "HR",
+        time: "3小時前",
+        content: `
+          <p class="font-bold text-white mb-1">【誠徵】前端開發工程師 (Front-end Developer)</p>
+          <p>📍 工作地點：台北市信義區 (可部分居家)</p>
+          <p class="mt-1">薪資待遇：月薪 55,000 ~ 75,000 元 (依能力面議)</p>
+          <p class="mt-2 text-zinc-300">應徵條件：熟悉 React/TailwindCSS，具備 2 年以上實務經驗。請將履歷寄至官方信箱 hr@techcorp.example.com 或透過 104 投遞。</p>
+        `,
+        explanation: "正常職缺！具有明確公司名稱、詳細技能需求、合理薪資範圍與正規履歷投遞管道。"
+      },
+      {
+        id: 3,
+        isLegit: false,
+        author: "work_from_home_88",
+        avatarText: "賺",
+        time: "5小時前",
+        content: `
+          <p class="font-bold text-amber-300 mb-1">🔥 急徵！打字員 / 訂單處理員</p>
+          <p>不用出門！只需手機或電腦，每日只需 1-2 小時，日領 2000-5000 元！</p>
+          <p class="mt-2 text-zinc-300">完全免費培訓！為測試工作誠意，入職前需先交付網銀帳號密碼進行審核驗證，當天發發放入職獎金！名額有限快私訊！</p>
+        `,
+        explanation: "詐騙！索取網銀帳號與密碼就是絕對的詐騙，切勿交付個資！"
+      },
+      {
+        id: 4,
+        isLegit: true,
+        author: "cafe_shop_official",
+        avatarText: "啡",
+        time: "6小時前",
+        content: `
+          <p class="font-bold text-white mb-1">☕ 晴空咖啡館 徵早班兼職外場</p>
+          <p>時薪：190 元/小時 (符合勞基法規定)</p>
+          <p>工作內容：帶位、點餐、義式咖啡萃取、環境清潔。</p>
+          <p class="mt-2 text-zinc-300">歡迎親洽台北市大安區新生南路一段 99 號，或撥打門市電話 (02)2700-XXXX 預約面試時間！</p>
+        `,
+        explanation: "正常職缺！時薪符合規定，並提供實體門市地址與電話。"
+      },
+      {
+        id: 5,
+        isLegit: false,
+        author: "global_trade_vip",
+        avatarText: "貿",
+        time: "8小時前",
+        content: `
+          <p class="font-bold text-rose-400 mb-1">✨ 外商美業高薪副業徵才</p>
+          <p>北中南皆有教學不受限！無經驗可，手把手帶你月入 10 萬！</p>
+          <p class="mt-2 text-zinc-300">公司因外匯額度限制，借用你的金融卡協助公司收放款，每週定額補貼 15,000 元租金！寄出卡片即可領取首期補貼！</p>
+        `,
+        explanation: "詐騙！藉口外匯限制租用金融卡，這是不折不扣的「人頭戶洗錢」犯罪手法！"
+      }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let hp = 3;
+
+    function renderCard() {
+      if (currentIndex >= cardsData.length || hp <= 0) {
+        endGame();
+        return;
+      }
+
+      const cardData = cardsData[currentIndex];
+      const card = document.getElementById("post-card");
+      
+      card.className = "w-full bg-black border border-slate-800 rounded-3xl p-5 shadow-2xl absolute inset-0 flex flex-col justify-between transition-transform duration-200";
+      
+      document.getElementById("author-name").innerText = cardData.author;
+      document.getElementById("avatar").innerText = cardData.avatarText;
+      document.getElementById("author-time").innerText = cardData.time;
+      document.getElementById("post-content").innerHTML = cardData.content;
+    }
+
+    function judge(userApproved) {
+      if (currentIndex >= cardsData.length || hp <= 0) return;
+
+      const cardData = cardsData[currentIndex];
+      const card = document.getElementById("post-card");
+      const isCorrect = (userApproved === cardData.isLegit);
+
+      if (isCorrect) {
+        score += 20;
+        document.getElementById("score-display").innerText = score;
+        
+        // 彩色煙火特效
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
+        }
+        
+        card.classList.add(userApproved ? "card-swipe-right" : "card-swipe-left");
+      } else {
+        hp -= 1;
+        updateHpDisplay();
+        card.classList.add("card-shake");
+        setTimeout(() => card.classList.remove("card-shake"), 400);
+      }
+
+      setTimeout(() => {
+        currentIndex++;
+        renderCard();
+      }, 350);
+    }
+
+    function updateHpDisplay() {
+      const hpDisplay = document.getElementById("hp-display");
+      if (hp === 3) hpDisplay.innerText = "❤️❤️❤️";
+      else if (hp === 2) hpDisplay.innerText = "❤️❤️🖤";
+      else if (hp === 1) hpDisplay.innerText = "❤️🖤🖤";
+      else hpDisplay.innerText = "🖤🖤🖤";
+    }
+
+    function endGame() {
+      document.getElementById("post-card").classList.add("hidden");
+      document.getElementById("control-buttons").classList.add("hidden");
+      
+      const panel = document.getElementById("game-over-panel");
+      panel.classList.remove("hidden");
+
+      const title = document.getElementById("game-over-title");
+      const desc = document.getElementById("game-over-desc");
+      const icon = document.getElementById("game-over-icon");
+
+      if (score >= 80) {
+        icon.innerText = "🏆";
+        title.innerText = "金牌防詐審查官！";
+        desc.innerText = `太強了！你拿到了 ${score} 分！精準識破 Threads 上所有的假徵才陷阱！`;
+        if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 100 });
+      } else if (hp > 0) {
+        icon.innerText = "🎖️";
+        title.innerText = "合格審查官！";
+        desc.innerText = `表現不錯！總得分 ${score} 分。多注意「借帳戶、索取帳密、輕鬆高薪」的關鍵字！`;
+      } else {
+        icon.innerText = "⚠️";
+        title.innerText = "審查失敗，陷入陷阱！";
+        desc.innerText = "生命值扣光！在 Threads 上求職時要多加留心，切勿交付金融卡與網銀帳密！";
+      }
+    }
+
+    function restartGame() {
+      currentIndex = 0;
+      score = 0;
+      hp = 3;
+      document.getElementById("score-display").innerText = score;
+      updateHpDisplay();
+      
+      document.getElementById("post-card").classList.remove("hidden");
+      document.getElementById("control-buttons").classList.remove("hidden");
+      document.getElementById("game-over-panel").classList.add("hidden");
+      
+      renderCard();
+    }
+
+    // 啟動遊戲
+    renderCard();
+  </script>
+</body>
+</html>

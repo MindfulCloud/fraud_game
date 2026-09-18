@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>投資陷阱｜防詐騙互動遊戲</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family:
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        Arial,
+        sans-serif;
+    background: #f3f5f8;
+    color: #222;
+}
+
+button {
+    font-family: inherit;
+}
+
+.header {
+    background: #17202a;
+    color: white;
+    padding: 18px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.header span {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 25px auto;
+    padding: 0 18px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* =========================
+   開始畫面
+========================= */
+
+.start-card {
+    max-width: 700px;
+    margin: 70px auto;
+    background: white;
+    border-radius: 20px;
+    padding: 45px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.warning-icon {
+    font-size: 65px;
+}
+
+.start-card h2 {
+    font-size: 32px;
+    margin: 15px 0;
+}
+
+.start-card p {
+    color: #666;
+    line-height: 1.8;
+}
+
+.start-btn {
+    border: none;
+    background: #e74c3c;
+    color: white;
+    padding: 15px 40px;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.start-btn:hover {
+    background: #c0392b;
+}
+
+/* =========================
+   遊戲介面
+========================= */
+
+.game-layout {
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 20px;
+}
+
+.status-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    height: fit-content;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.status-card h3 {
+    margin-top: 0;
+}
+
+.money {
+    font-size: 25px;
+    font-weight: bold;
+    margin: 12px 0;
+}
+
+.warning-level {
+    margin-top: 20px;
+}
+
+.progress {
+    height: 10px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #e74c3c;
+    transition: 0.4s;
+}
+
+.warning-list {
+    margin-top: 20px;
+}
+
+.warning-item {
+    background: #fff4e5;
+    color: #8a5300;
+    padding: 9px;
+    border-radius: 8px;
+    margin-bottom: 7px;
+    font-size: 13px;
+}
+
+/* =========================
+   Chat
+========================= */
+
+.chat-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.chat-header {
+    background: #34495e;
+    color: white;
+    padding: 18px;
+}
+
+.chat-header h2 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.chat-header small {
+    opacity: 0.7;
+}
+
+.chat-body {
+    padding: 20px;
+    min-height: 500px;
+    background: #e9edf1;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 18px;
+}
+
+.message.you {
+    justify-content: flex-end;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: #95a5a6;
+    border-radius: 50%;
+    margin-right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.message.you .avatar {
+    display: none;
+}
+
+.bubble {
+    max-width: 70%;
+    padding: 12px 15px;
+    border-radius: 15px;
+    background: white;
+    line-height: 1.6;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.message.you .bubble {
+    background: #95e6a7;
+}
+
+.message.scam .bubble {
+    background: #fff7d6;
+}
+
+.message.system .bubble {
+    background: #dce6f1;
+    font-size: 13px;
+    color: #555;
+}
+
+/* =========================
+   選項
+========================= */
+
+.choice-area {
+    padding: 20px;
+    background: white;
+    border-top: 1px solid #eee;
+}
+
+.choice-area h3 {
+    margin-top: 0;
+}
+
+.choice-btn {
+    width: 100%;
+    padding: 14px;
+    margin: 7px 0;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 9px;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.choice-btn:hover {
+    border-color: #3498db;
+    background: #f3f9ff;
+}
+
+/* =========================
+   投資面板
+========================= */
+
+.investment-panel {
+    background: #202b36;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+.stock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stock-price {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.stock-chart {
+    height: 150px;
+    background:
+        linear-gradient(
+            170deg,
+            transparent 45%,
+            rgba(255,255,255,0.1) 46%,
+            transparent 47%
+        );
+    position: relative;
+    overflow: hidden;
+    margin: 15px 0;
+    border-bottom: 1px solid #566573;
+}
+
+.chart-line {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.chart-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.invest-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 7px;
+    border: none;
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.invest-btn {
+    width: 100%;
+    padding: 12px;
+    background: #27ae60;
+    border: none;
+    color: white;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.invest-btn:hover {
+    background: #219150;
+}
+
+.return-box {
+    background: #34495e;
+    padding: 12px;
+    border-radius: 7px;
+    margin-top: 10px;
+}
+
+/* =========================
+   結局
+========================= */
+
+.result-card {
+    max-width: 750px;
+    margin: 50px auto;
+    background: white;
+    border-radius: 20px;
+    padding: 45px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+}
+
+.result-icon {
+    font-size: 70px;
+}
+
+.result-card h2 {
+    font-size: 30px;
+}
+
+.score {
+    font-size: 42px;
+    font-weight: bold;
+    color: #e67e22;
+}
+
+.lesson {
+    text-align: left;
+    background: #f7f7f7;
+    padding: 20px;
+    border-radius: 12px;
+    line-height: 1.8;
+    margin-top: 20px;
+}
+
+.restart-btn {
+    border: none;
+    background: #34495e;
+    color: white;
+    padding: 13px 30px;
+    border-radius: 8px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+/* =========================
+   手機
+========================= */
+
+@media(max-width: 750px) {
+
+    .game-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .status-card {
+        order: 2;
+    }
+
+    .chat-card {
+        order: 1;
+    }
+
+    .start-card {
+        margin: 30px auto;
+        padding: 30px 20px;
+    }
+
+    .bubble {
+        max-width: 85%;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<header class="header">
+
+    <h1>🛡️ 防詐騙互動遊戲</h1>
+
+    <span>投資詐騙篇｜台灣情境</span>
+
+</header>
+
+
+<div class="container">
+
+
+<!-- =========================
+     START
+========================= -->
+
+<section id="startScreen" class="screen active">
+
+    <div class="start-card">
+
+        <div class="warning-icon">🚨</div>
+
+        <h2>你能避開投資陷阱嗎？</h2>
+
+        <p>
+            一位很久沒聯絡的朋友突然傳訊息給你，
+            邀請你加入一個「投資交流群」。
+        </p>
+
+        <p>
+            群組裡有一位大家都稱為「老師」的人，
+            他似乎總能準確預測股票行情。
+        </p>
+
+        <p>
+            你會怎麼做？
+        </p>
+
+        <button class="start-btn" onclick="startGame()">
+            開始遊戲
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================
+     GAME
+========================= -->
+
+<section id="gameScreen" class="screen">
+
+    <div class="game-layout">
+
+
+        <!-- LEFT STATUS -->
+
+        <aside class="status-card">
+
+            <h3>👤 你的狀態</h3>
+
+            <div>
+                可用資金
+            </div>
+
+            <div class="money">
+                NT$ <span id="money">100,000</span>
+            </div>
+
+            <div>
+                投資損益：
+                <strong id="profit">NT$ 0</strong>
+            </div>
+
+            <div class="warning-level">
+
+                <strong>⚠️ 詐騙警覺度</strong>
+
+                <div class="progress">
+                    <div
+                        id="warningBar"
+                        class="progress-bar">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="warning-list">
+
+                <div id="warning1"
+                     class="warning-item"
+                     style="display:none">
+                    ⚠️ 好友突然推薦投資
+                </div>
+
+                <div id="warning2"
+                     class="warning-item"
+                     style="display:none">
+                    ⚠️ 群組中的「老師」無法驗證身份
+                </div>
+
+                <div id="warning3"
+                     class="warning-item"
+                     style="display:none">
+                    ⚠️ 要求使用複委託投資美股
+                </div>
+
+                <div id="warning4"
+                     class="warning-item"
+                     style="display:none">
+                    ⚠️ 股票價格異常拉高後暴跌
+                </div>
+
+            </div>
+
+        </aside>
+
+
+
+        <!-- CHAT -->
+
+        <main class="chat-card">
+
+            <div class="chat-header">
+
+                <h2 id="chatTitle">
+                    💬 LINE｜好友
+                </h2>
+
+                <small id="chatSubtitle">
+                    1 對 1 私人聊天
+                </small>
+
+            </div>
+
+
+            <div
+                id="chatBody"
+                class="chat-body">
+            </div>
+
+
+            <div
+                id="choiceArea"
+                class="choice-area">
+            </div>
+
+        </main>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================
+     RESULT
+========================= -->
+
+<section id="resultScreen" class="screen">
+
+    <div class="result-card">
+
+        <div id="resultIcon"
+             class="result-icon">
+            🏆
+        </div>
+
+        <h2 id="resultTitle">
+            極大成功
+        </h2>
+
+        <div class="score">
+            <span id="score">100</span> 分
+        </div>
+
+        <p id="resultDescription"></p>
+
+        <div class="lesson">
+
+            <h3>🧠 這次你學到了什麼？</h3>
+
+            <ul>
+
+                <li>
+                    好友帳號突然傳送投資資訊，
+                    不代表真的是本人。
+                </li>
+
+                <li>
+                    「老師」、「分析師」或群組成員
+                    的獲利截圖，都不能證明投資是真的。
+                </li>
+
+                <li>
+                    高報酬、穩賺不賠、內線消息，
+                    都是重要警訊。
+                </li>
+
+                <li>
+                    投資美股透過複委託，
+                    也不代表投資標的本身安全。
+                </li>
+
+                <li>
+                    當股票出現異常暴漲，
+                    更應該先停下來確認資訊。
+                </li>
+
+            </ul>
+
+        </div>
+
+        <button
+            class="restart-btn"
+            onclick="location.reload()">
+            再玩一次
+        </button>
+
+    </div>
+
+</section>
+
+
+</div>
+
+
+
+<script>
+
+/* =========================================
+   GAME STATE
+========================================= */
+
+let game = {
+
+    money: 100000,
+
+    invested: 0,
+
+    profit: 0,
+
+    warning: 0,
+
+    score: 0,
+
+    stage: 0,
+
+    enteredGroup: false,
+
+    investedBefore: false,
+
+    withdrew: false,
+
+    caughtAccountHack: false
+
+};
+
+
+
+/* =========================================
+   START
+========================================= */
+
+function startGame() {
+
+    document
+        .getElementById("startScreen")
+        .classList.remove("active");
+
+    document
+        .getElementById("gameScreen")
+        .classList.add("active");
+
+    stageFriend();
+
+}
+
+
+
+/* =========================================
+   CHAT FUNCTIONS
+========================================= */
+
+function clearChat() {
+
+    document.getElementById("chatBody").innerHTML = "";
+
+    document.getElementById("choiceArea").innerHTML = "";
+
+}
+
+
+function addMessage(
+    sender,
+    text,
+    type = ""
+) {
+
+    const body =
+        document.getElementById("chatBody");
+
+    const div =
+        document.createElement("div");
+
+    div.className =
+        "message " + type;
+
+    if(type === "you") {
+
+        div.innerHTML = `
+            <div class="bubble">
+                ${text}
+            </div>
+        `;
+
+    } else {
+
+        div.innerHTML = `
+            <div class="avatar">
+                ${sender === "好友" ? "👤" : "👨‍🏫"}
+            </div>
+
+            <div class="bubble">
+                <strong>${sender}</strong><br>
+                ${text}
+            </div>
+        `;
+
+    }
+
+    body.appendChild(div);
+
+    body.scrollTop =
+        body.scrollHeight;
+
+}
+
+
+function setChoices(choices) {
+
+    const area =
+        document.getElementById("choiceArea");
+
+    area.innerHTML =
+        "<h3>你會怎麼做？</h3>";
+
+    choices.forEach(choice => {
+
+        const button =
+            document.createElement("button");
+
+        button.className =
+            "choice-btn";
+
+        button.innerHTML =
+            choice.text;
+
+        button.onclick =
+            choice.action;
+
+        area.appendChild(button);
+
+    });
+
+}
+
+
+
+/* =========================================
+   WARNING
+========================================= */
+
+function addWarning(number) {
+
+    const item =
+        document.getElementById(
+            "warning" + number
+        );
+
+    item.style.display = "block";
+
+    game.warning += 25;
+
+    document
+        .getElementById("warningBar")
+        .style.width =
+        game.warning + "%";
+
+}
+
+
+
+/* =========================================
+   STAGE 1
+   FRIEND
+========================================= */
+
+function stageFriend() {
+
+    clearChat();
+
+    document.getElementById(
+        "chatTitle"
+    ).innerText =
+        "💬 LINE｜好友";
+
+    document.getElementById(
+        "chatSubtitle"
+    ).innerText =
+        "私人聊天";
+
+    addMessage(
+        "好友",
+        "欸！最近有在投資嗎？"
+    );
+
+    setTimeout(() => {
+
+        addMessage(
+            "好友",
+            "我最近跟一個老師投資，還不錯賺。"
+        );
+
+        addWarning(1);
+
+        setChoices([
+
+            {
+                text:
+                    "A. 真的嗎？你怎麼找到的？",
+                action:
+                    friendAsk
+            },
+
+            {
+                text:
+                    "B. 投資群組？先確認一下是不是你本人吧。",
+                action:
+                    friendVerify
+            },
+
+            {
+                text:
+                    "C. 好啊！直接把群組給我。",
+                action:
+                    friendJoin
+            }
+
+        ]);
+
+    }, 700);
+
+}
+
+
+
+/* =========================================
+   FRIEND CHOICES
+========================================= */
+
+function friendAsk() {
+
+    addMessage(
+        "你",
+        "真的嗎？你怎麼找到的？",
+        "you"
+    );
+
+    setTimeout(() => {
+
+        addMessage(
+            "好友",
+            "朋友介紹的啦！群裡有老師帶單，很多人都賺錢。"
+        );
+
+        setChoices([
+
+            {
+                text:
+                    "加入群組看看",
+                action:
+                    friendJoin
+            },
+
+            {
+                text:
+                    "先跟朋友本人確認",
+                action:
+                    friendVerify
+            }
+
+        ]);
+
+    }, 500);
+
+}
+
+
+function friendVerify() {
+
+    game.caughtAccountHack = true;
+
+    addMessage(
+        "你",
+        "你最近是不是有在研究投資？這個群組是你本人推薦的嗎？",
+        "you"
+    );
+
+    setTimeout(() => {
+
+        addMessage(
+            "系統",
+            "你透過另一個聯絡方式詢問朋友本人。"
+        );
+
+        addMessage(
+            "好友",
+            "蛤？我沒有傳這個給你啊，我的 LINE 好像被盜了！"
+        );
+
+        endGame(
+            "extreme"
+        );
+
+    }, 800);
+
+}
+
+
+function friendJoin() {
+
+    game.enteredGroup = true;
+
+    addMessage(
+        "你",
+        "好啊，我進去看看。",
+        "you"
+    );
+
+    addMessage(
+        "系統",
+        "你加入了「美股精準投資 VIP 群」。"
+    );
+
+    setTimeout(
+        stageGroup,
+        700
+    );
+
+}
+
+
+
+/* =========================================
+   STAGE 2
+   INVESTMENT GROUP
+========================================= */
+
+function stageGroup() {
+
+    clearChat();
+
+    document.getElementById(
+        "chatTitle"
+    ).innerText =
+        "📈 美股精準投資 VIP 群";
+
+    document.getElementById(
+        "chatSubtitle"
+    ).innerText =
+        "群組成員 186 人";
+
+    addMessage(
+        "老師",
+        "大家晚上好，今天市場波動比較大，先不要急著追高。"
+    );
+
+    addMessage(
+        "老師",
+        "我們有內部研究團隊，會提前判斷市場方向。"
+    );
+
+    addMessage(
+        "群友 A",
+        "老師上次推薦的真的賺了 8%！"
+    );
+
+    addMessage(
+        "群友 B",
+        "我也賺了，謝謝老師 🙏"
+    );
+
+    addMessage(
+        "老師",
+        "明天我會給大家一個比較保守的標的。"
+    );
+
+    addWarning(2);
+
+    setChoices([
+
+        {
+            text:
+                "A. 先觀察，不投資",
+            action:
+                observeOnly
+        },
+
+        {
+            text:
+                "B. 小額跟單試試看",
+            action:
+                firstInvestment
+        },
+
+        {
+            text:
+                "C. 既然大家都賺，我也大筆投入",
+            action:
+                bigInvestment
+        }
+
+    ]);
+
+}
+
+
+
+/* =========================================
+   OBSERVE ONLY
+========================================= */
+
+function observeOnly() {
+
+    game.score += 20;
+
+    addMessage(
+        "你",
+        "我先觀察看看，不急著投資。",
+        "you"
+    );
+
+    addMessage(
+        "老師",
+        "沒問題，先看我們的操作。"
+    );
+
+    setTimeout(
+        stageProfit1,
+        700
+    );
+
+}
+
+
+
+/* =========================================
+   FIRST INVESTMENT
+========================================= */
+
+function firstInvestment() {
+
+    game.investedBefore = true;
+
+    addMessage(
+        "你",
+        "我先小額試試看。",
+        "you"
+    );
+
+    showInvestmentPanel(
+        1,
+        0.08
+    );
+
+}
+
+
+
+/* =========================================
+   BIG INVESTMENT
+========================================= */
+
+function bigInvestment() {
+
+    game.investedBefore = true;
+
+    addMessage(
+        "你",
+        "大家都在賺，那我多投一點。",
+        "you"
+    );
+
+    showInvestmentPanel(
+        1,
+        0.08
+    );
+
+}
+
+
+
+/* =========================================
+   INVESTMENT PANEL
+========================================= */
+
+function showInvestmentPanel(
+    round,
+    returnRate
+) {
+
+    const area =
+        document.getElementById(
+            "choiceArea"
+        );
+
+    area.innerHTML = `
+
+        <h3>📊 模擬投資</h3>
+
+        <div class="investment-panel">
+
+            <div class="stock-header">
+
+                <div>
+                    <strong>
+                        US Growth Technology
+                    </strong>
+
+                    <br>
+
+                    <small>
+                        美股｜模擬標的
+                    </small>
+                </div>
+
+                <div class="stock-price">
+                    $1.20
+                </div>
+
+            </div>
+
+            <div class="stock-chart">
+
+                <svg
+                    class="chart-svg"
+                    viewBox="0 0 500 150"
+                    preserveAspectRatio="none">
+
+                    <polyline
+                        points="
+                        0,130
+                        50,125
+                        100,120
+                        150,115
+                        200,105
+                        250,100
+                        300,85
+                        350,80
+                        400,70
+                        450,60
+                        500,55"
+                        fill="none"
+                        stroke="#2ecc71"
+                        stroke-width="4"
+                    />
+
+                </svg>
+
+            </div>
+
+            <div>
+                預估回報率：
+                <strong>
+                    +${Math.round(returnRate * 100)}%
+                </strong>
+            </div>
+
+            <input
+                id="investmentAmount"
+                class="invest-input"
+                type="number"
+                min="1000"
+                max="${game.money}"
+                step="1000"
+                value="10000"
+                placeholder="輸入投資金額"
+            >
+
+            <button
+                class="invest-btn"
+                onclick="
+                    makeInvestment(
+                        ${round},
+                        ${returnRate}
+                    )
+                ">
+                透過複委託下單
+            </button>
+
+        </div>
+    `;
+
+}
+
+
+
+/* =========================================
+   MAKE INVESTMENT
+========================================= */
+
+function makeInvestment(
+    round,
+    returnRate
+) {
+
+    const amount =
+        Number(
+            document.getElementById(
+                "investmentAmount"
+            ).value
+        );
+
+    if(
+        amount < 1000 ||
+        amount > game.money
+    ) {
+
+        alert(
+            "請輸入有效投資金額"
+        );
+
+        return;
+    }
+
+    game.money -= amount;
+
+    game.invested += amount;
+
+    const profit =
+        Math.round(
+            amount * returnRate
+        );
+
+    game.profit += profit;
+
+    updateMoney();
+
+    addWarning(3);
+
+    addMessage(
+        "系統",
+        `你透過銀行複委託買入美股，投入 NT$ ${amount.toLocaleString()}。`
+    );
+
+    addMessage(
+        "老師",
+        `恭喜！這次報酬 ${Math.round(returnRate*100)}%，慢慢跟著做就好。`
+    );
+
+    setTimeout(
+        stageProfit1,
+        800
+    );
+
+}
+
+
+
+/* =========================================
+   PROFIT 1
+========================================= */
+
+function stageProfit1() {
+
+    clearChat();
+
+    document.getElementById(
+        "chatTitle"
+    ).innerText =
+        "📈 美股精準投資 VIP 群";
+
+    addMessage(
+        "老師",
+        "第一波操作結束，恭喜大家！"
+    );
+
+    addMessage(
+        "群友 A",
+        "老師我賺了 6%！"
+    );
+
+    addMessage(
+        "群友 B",
+        "我也賺了 8%！"
+    );
+
+    addMessage(
+        "老師",
+        "我們不是靠運氣，是有策略的。"
+    );
+
+    setChoices([
+
+        {
+            text:
+                "A. 這次真的賺到了，再跟一次",
+            action:
+                secondInvestment
+        },
+
+        {
+            text:
+                "B. 先把獲利拿回來",
+            action:
+                withdrawEarly
+        },
+
+        {
+            text:
+                "C. 還是覺得可疑，停止投資",
+            action:
+                stopInvestment
+        }
+
+    ]);
+
+}
+
+
+
+/* =========================================
+   SECOND INVESTMENT
+========================================= */
+
+function secondInvestment() {
+
+    addMessage(
+        "你",
+        "那我再跟一次。",
+        "you"
+    );
+
+    showInvestmentPanel(
+        2,
+        0.10
+    );
+
+}
+
+
+
+/* =========================================
+   WITHDRAW
+========================================= */
+
+function withdrawEarly() {
+
+    game.withdrew = true;
+
+    addMessage(
+        "你",
+        "我先把本金和獲利拿回來。",
+        "you"
+    );
+
+    addMessage(
+        "老師",
+        "現在出場太可惜了，後面還有更好的機會。"
+    );
+
+    addMessage(
+        "系統",
+        "你成功取回投資資金。"
+    );
+
+    game.money +=
+        game.invested +
+        game.profit;
+
+    game.invested = 0;
+
+    game.profit = 0;
+
+    updateMoney();
+
+    setTimeout(
+        stageFinalTrap,
+        700
+    );
+
+}
+
+
+
+/* =========================================
+   STOP
+========================================= */
+
+function stopInvestment() {
+
+    addMessage(
+        "你",
+        "我先不投了，謝謝。",
+        "you"
+    );
+
+    addMessage(
+        "老師",
+        "好吧，不過這一波可能會漲很多。"
+    );
+
+    endGame(
+        "great"
+    );
+
+}
+
+
+
+/* =========================================
+   SECOND PROFIT
+========================================= */
+
+function stageSecondProfit() {
+
+    clearChat();
+
+    addMessage(
+        "老師",
+        "第二次也成功！+10%"
+    );
+
+    addMessage(
+        "群友",
+        "老師真的太神了！"
+    );
+
+    addMessage(
+        "老師",
+        "下一次機會可能是我們今年最重要的一次。"
+    );
+
+    setChoices([
+
+        {
+            text:
+                "繼續投資",
+            action:
+                thirdInvestment
+        },
+
+        {
+            text:
+                "停止投資",
+            action:
+                stopInvestment
+        }
+
+    ]);
+
+}
+
+
+
+/* =========================================
+   THIRD
+========================================= */
+
+function thirdInvestment() {
+
+    showInvestmentPanel(
+        3,
+        0.12
+    );
+
+}
+
+
+
+/* =========================================
+   FINAL TRAP
+========================================= */
+
+function stageFinalTrap() {
+
+    clearChat();
+
+    addMessage(
+        "老師",
+        "⚠️ 注意！最後一次機會。"
+    );
+
+    addMessage(
+        "老師",
+        "我們的內部消息確認，這支股票一定會漲到 $10。"
+    );
+
+    addMessage(
+        "群友 A",
+        "真的假的？"
+    );
+
+    addMessage(
+        "老師",
+        "這是我們最後一次公開操作。"
+    );
+
+    addMessage(
+        "老師",
+        "錯過這次，你可能會後悔。"
+    );
+
+    addWarning(4);
+
+    setChoices([
+
+        {
+            text:
+                "A. 我不相信「一定會漲」，停止投資",
+            action:
+                stopBeforeCrash
+        },
+
+        {
+            text:
+                "B. 小額投入",
+            action:
+                finalSmallInvestment
+        },
+
+        {
+            text:
+                "C. 把大部分資金都投入",
+            action:
+                finalBigInvestment
+        }
+
+    ]);
+
+}
+
+
+
+/* =========================================
+   FINAL SMALL
+========================================= */
+
+function finalSmallInvestment() {
+
+    const amount =
+        Math.min(
+            10000,
+            game.money
+        );
+
+    game.money -= amount;
+
+    game.invested += amount;
+
+    addMessage(
+        "你",
+        `我最後再投入 NT$ ${amount.toLocaleString()}。`,
+        "you"
+    );
+
+    crash();
+
+}
+
+
+
+/* =========================================
+   FINAL BIG
+========================================= */
+
+function finalBigInvestment() {
+
+    const amount =
+        game.money;
+
+    game.money = 0;
+
+    game.invested += amount;
+
+    addMessage(
+        "你",
+        `我把剩下 NT$ ${amount.toLocaleString()} 都投入了。`,
+        "you"
+    );
+
+    crash();
+
+}
+
+
+
+/* =========================================
+   CRASH
+========================================= */
+
+function crash() {
+
+    const area =
+        document.getElementById(
+            "choiceArea"
+        );
+
+    area.innerHTML = `
+
+        <div class="investment-panel">
+
+            <h3>⚠️ 市場突然異常波動</h3>
+
+            <div class="stock-price">
+                $10.20
+            </div>
+
+            <p>
+                股票在短時間內快速上漲。
+            </p>
+
+            <div class="stock-price"
+                 style="color:#e74c3c">
+
+                $0.38
+
+            </div>
+
+            <p>
+                🚨 幾分鐘後，價格突然暴跌。
+            </p>
+
+            <svg
+                class="chart-svg"
+                viewBox="0 0 500 150">
+
+                <polyline
+                    points="
+                    0,130
+                    70,125
+                    130,120
+                    180,100
+                    220,90
+                    260,40
+                    300,15
+                    340,30
+                    380,90
+                    420,125
+                    500,140"
+                    fill="none"
+                    stroke="#e74c3c"
+                    stroke-width="5"
+                />
+
+            </svg>
+
+            <button
+                class="invest-btn"
+                style="background:#e74c3c"
+                onclick="finalResult()">
+
+                查看結果
+
+            </button>
+
+        </div>
+    `;
+
+}
+
+
+
+/* =========================================
+   FINAL RESULT
+========================================= */
+
+function finalResult() {
+
+    endGame(
+        "failure"
+    );
+
+}
+
+
+
+/* =========================================
+   UPDATE MONEY
+========================================= */
+
+function updateMoney() {
+
+    document.getElementById(
+        "money"
+    ).innerText =
+        game.money.toLocaleString();
+
+    document.getElementById(
+        "profit"
+    ).innerText =
+        "NT$ " +
+        game.profit.toLocaleString();
+
+}
+
+
+
+/* =========================================
+   END GAME
+========================================= */
+
+function endGame(result) {
+
+    document
+        .getElementById("gameScreen")
+        .classList.remove("active");
+
+    document
+        .getElementById("resultScreen")
+        .classList.add("active");
+
+
+    let icon = "";
+    let title = "";
+    let description = "";
+    let score = 0;
+
+
+    if(result === "extreme") {
+
+        icon = "🏆";
+
+        title =
+            "極大成功｜你完全識破了詐騙";
+
+        description =
+            "你沒有因為「朋友推薦」就直接相信，而是透過其他方式確認本人。結果發現朋友的帳號早已被盜用。";
+
+        score = 100;
+
+    }
+
+
+    else if(result === "great") {
+
+        icon = "🥇";
+
+        title =
+            "大成功｜你沒有掉進投資陷阱";
+
+        description =
+            "你雖然看見群組中的獲利案例，但沒有因為群體氣氛和老師的話術而投資。";
+
+        score = 90;
+
+    }
+
+
+    else if(result === "success") {
+
+        icon = "🥈";
+
+        title =
+            "成功｜你安全下庄";
+
+        description =
+            "你曾經投資，但在察覺異常後選擇停止並取回資金。";
+
+        score = 75;
+
+    }
+
+
+    else {
+
+        icon = "💀";
+
+        title =
+            "失敗｜你的本金被套牢";
+
+        description =
+            "你受到前幾次獲利的影響，開始相信「老師」的判斷，最後在股票暴跌後無法取回本金。";
+
+        score = 20;
+
+    }
+
+
+    document.getElementById(
+        "resultIcon"
+    ).innerText = icon;
+
+    document.getElementById(
+        "resultTitle"
+    ).innerText = title;
+
+    document.getElementById(
+        "resultDescription"
+    ).innerText = description;
+
+    document.getElementById(
+        "score"
+    ).innerText = score;
+
+}
+
+
+
+/* =========================================
+   SPECIAL PATH
+========================================= */
+
+function stopBeforeCrash() {
+
+    addMessage(
+        "你",
+        "「一定會漲」這種說法太危險，我不投了。",
+        "you"
+    );
+
+    addMessage(
+        "老師",
+        "你真的不考慮嗎？這可是難得的機會。"
+    );
+
+    addMessage(
+        "系統",
+        "你選擇拒絕高壓式投資邀請。"
+    );
+
+    if(game.investedBefore) {
+
+        endGame(
+            "success"
+        );
+
+    } else {
+
+        endGame(
+            "great"
+        );
+
+    }
+
+}
+
+
+
+/* =========================================
+   WITHDRAW PATH
+========================================= */
+
+function withdrawPath() {
+
+    endGame(
+        "success"
+    );
+
+}
+
+</script>
+
+</body>
+</html>
